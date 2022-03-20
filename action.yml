@@ -1,0 +1,45 @@
+name: 'Go Coverage'
+description: 'Generates Go coverage reports'
+inputs:
+  token:
+    description: github token
+    default:  ${{ github.token }}
+  report-url-template:
+    description: URL of final uploaded report.  e.g. https://reports.example.com/{{sha}}/cover.html
+    required: false
+  working-directory:
+    description: 'working directory.  defaults to project root'
+    required: false
+    default: ''
+  report-filename:
+    description: 'filename for the resulting html coverage report'
+    required: false
+    default: 'go-coverage.html'
+  test-args:
+    description: 'Additional arguments to pass to go test as a JSON array - e.g. ["-tags", "integration"]'
+    default: '[]'
+    required: false
+  coverage-threshold:
+    description: 'Fail the build if the coverage drops below supplied percentage'
+    required: false
+    default: 0 
+outputs:
+  report-pathname:
+    description: 'The full pathname of the generated coverage report'
+  gocov-pathanme:
+    description: 'The full path of the generated raw go.cov file'
+  coverage-pct:
+    description: 'The coverage figure for the whole project.  e.g "83.4"'
+  coverage-last-pct:
+    description: 'The prior coverage percentage'
+  coverage-last-sha:
+    description: 'Commit sha prior coverage was recorded at'
+  coverage-delta:
+    description: 'Amount coverage has changed'
+  package-count:
+    description: 'Number of Go packages scanned'
+  uncovered-packages:
+    description: 'Number of Go packages with no test coverage'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
