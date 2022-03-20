@@ -1,0 +1,29 @@
+name: "CI"
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'releases/*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 10
+    - uses: actions/setup-go@v2
+      with:
+        go-version: 1.18
+    - uses: ./
+      id: coverage
+      with:
+        working-directory: test-go-module
+        coverage-threshold: 0
+    - if: steps.coverage.outputs.coverage-pct < 40
+      uses: actions/github-script@v3
+      with:
+        script: |
+          core.setFailed('Incorrect coverage-pct: ${{ steps.coverage.outputs.coverage-pct }}')
