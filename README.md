@@ -31,21 +31,25 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
+        # default fetch-depth is insufficent to find previous coverage notes
         fetch-depth: 10
     - uses: gwatts/go-coverage-action@v1
       id: coverage
       with:
-        # Optional coverage threshold; check will fail if coverage is below this number
+        # Optional coverage threshold; check will fail if coverage is
+        # below this number
         coverage-threshold: 80
         
-        # A url that the html report will be accessible at, once your workflow uploads it
+        # A url that the html report will be accessible at, once your
+        # workflow uploads it
         # used in the pull request comment.
         report-url: https://artifacts.example.com/go-coverage/${{ github.sha}}.html
 
         # Github token to give permission to post the comment
-		# token: ${{ github.token }}
+        # token: ${{ github.token }}
 
-        # Directory to execute go test from; defaults to the current directory
+        # Directory to execute go test from; defaults to the
+        # current directory
         # working-directory: ./my-go-files
 
         # Override the report filename
