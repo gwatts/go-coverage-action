@@ -8652,7 +8652,7 @@ async function run() {
     core.setOutput('coverage-delta', 0);
   }
   if (report.no_tests > 0) {
-    commitComment += `\n$:warning: {report.no_tests} of ${report.pkg_count} packages have zero coverage.`
+    commitComment += `\n:warning: ${report.no_tests} of ${report.pkg_count} packages have zero coverage.`
   }
 
   await setCoverageNote(report.coverage_pct);
