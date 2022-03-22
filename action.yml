@@ -18,8 +18,9 @@ inputs:
   cover-mode:
     description: 'parameter to pass to go tests -covermode argument.  Either count, set or atomic'
     default: 'count'
-  build-args:
+  test-args:
     description: 'Build arguments to pass to go test'
+    default: '[]'
     required: false
   coverage-threshold:
     description: 'Fail the build if the coverage drops below supplied percentage'
