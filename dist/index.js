@@ -8485,12 +8485,13 @@ const path = __nccwpck_require__(1017);
 const execFileCmd = promisify(execFile)
 
 const tmpdir = process.env['RUNNER_TEMP'];
+const ctx = github.context;
 
 
 
-async function exec(cmd, args, continueOnError) {
-  const wd = core.getInput('working-directory');
+async function exec(cmd, args) {
   try {
+    const wd = core.getInput('working-directory');
     core.info(`executing ${cmd} ${args.join(' ')}`);
     const {stdout, stderr} = await execFileCmd(cmd, args,
       {
@@ -8503,49 +8504,63 @@ async function exec(cmd, args, continueOnError) {
           'GIT_COMMITTER_EMAIL': '<>',
         },
       });
-    if (stdout.trim()) {
-      core.info(stdout.trim());
-    }
-    if (stderr.trim()) {
-      core.info(stderr.trim());
-    }
+    console.info(stdout + stderr);
     return stdout;
-  } catch (error) {
-    core.error(`Failed to run ${cmd} ${args.join(' ')}: ${error}`);
-    if (!continueOnError) {
-      core.setFailed(error.message);
-      process.exit(1);
-    }
+  } catch (e) {
+    core.error(`Failed to run ${cmd} ${args.join(' ')}`);
+    console.info(e.stdout + e.stderr);
   }
 }
 
-async function logGoVersion() {
-  const result = await exec('go', ['version']);
-  core.info(result);
+
+async function setup() {
+  await exec('go', ['version']);
+
+  try {
+    await exec('git', ['fetch', 'origin', 
+      'refs/notes/gocoverage:refs/notes/gocoverage'], true);
+  } catch(e) {
+    // expected to fail if the ref hasn't been created yet
+    core.info('no existing gocoverage ref');
+  }
 }
+
 
 async function setCoverageNote(newPct) {
   await exec('git', ['notes',
     '--ref=gocoverage',
     'add',
-    '-f', '-m', `gocov=${newPct}`, github.context.sha]);
+    '-f', '-m', `gocov=${newPct}`, ctx.sha]);
   return await exec('git', ['push', 'origin', 'refs/notes/gocoverage']);
 }
 
-async function getPriorCoverage(ref) {
-  const stdout = await exec('git', ['log', '--notes=gocoverage', '--pretty=format:%H:%N', '--grep=gocov', '-n', '1', ref], true);
-  const m = stdout && stdout.match(/^(\w+):gocov=([\d.]+)/);
+async function getPriorCoverage() {
+  const pl = ctx.payload;
+  const ref = pl.pull_request ? pl.pull_request.base.sha : pl.before;
+  if (!ref) {
+    return {};
+  }
+ try {
+    const stdout = await exec('git', 
+      ['log', 
+        '--notes=gocoverage', 
+        '--pretty=format:%H:%N', 
+        '--grep=gocov', '-n', '1', ref], true);
+    const m = stdout.match(/^(\w+):gocov=([\d.]+)/);
 
-  if (m) {
-    core.debug(`returning sha=${m[1]} and priorPct ${Number(m[2])}`);
-    return {priorSha: m[1], priorPct: Number(m[2])};
+    if (m) {
+      core.debug(`returning sha=${m[1]} and priorPct ${Number(m[2])}`);
+      return {priorSha: m[1], priorPct: Number(m[2])};
+    }
+  } catch(e) {
+    // git log may fail an invalid ref is given; that's ok.
   }
   core.info(`no prior coverage found`);
   return {};
 }
 
 
-async function generateReport() {
+async function generateCoverage() {
   let report = {
     'pkg_count': 0,
     'with_tests': 0,
@@ -8553,8 +8568,6 @@ async function generateReport() {
     'coverage_pct': 0,
     'pathname': '',
   };
-
-  await logGoVersion();
 
   const covFile = path.join(tmpdir, 'go.cov');
   core.setOutput('gocov-pathname', covFile);
@@ -8566,7 +8579,15 @@ async function generateReport() {
 
   const coverMode = core.getInput('cover-mode');
 
-  const testArgs = JSON.parse(core.getInput('test-args'));
+  let testArgs;
+  try {
+    testArgs = JSON.parse(core.getInput('test-args'));
+    if (!Array.isArray(testArgs)) {
+      throw('not an array');
+    }
+  } catch(e) {
+      throw(`invalid value for test-args; must be a JSON array of strings, got ${testArgs} (${e})`);
+  }
 
   let args = ['test'].concat(testArgs).concat(
     ['-covermode', coverMode, '-coverprofile', covFile, './...']);
@@ -8587,9 +8608,7 @@ async function generateReport() {
   stdout = await exec('go', ['tool', 'cover', '-func', covFile]);
   const m = stdout.match(/^total:.+\s([\d.]+)%/m);
   if (!m) {
-    core.error(`Failed to parse output of go tool cover.  Output was ${stdout}`);
-    core.setFailed('parse error');
-    return;
+    throw(`Failed to parse output of go tool cover.  Output was ${stdout}`);
   }
 
   report.coverage_pct = Number(m[1]);
@@ -8598,24 +8617,12 @@ async function generateReport() {
 }
 
 
-async function run() {
-  const report = await generateReport();
-  if (!report) {
-    return;
-  }
+async function generateReport() {
+  await setup();
 
-  await exec('git', ['fetch', 'origin', 
-    'refs/notes/gocoverage:refs/notes/gocoverage'], true);
+  const report = await generateCoverage();
 
-  let priorPct, priorSha;
-  if (github.context.payload.pull_request) {
-    const base_sha = github.context.payload.pull_request.base.sha;
-    ({priorPct, priorSha} = await getPriorCoverage(base_sha));
-
-  } else if (github.context.payload.before) {
-    ({priorPct, priorSha} = await getPriorCoverage(github.context.payload.before));
-
-  }
+  const {priorPct, priorSha} = await getPriorCoverage();
 
   const minPct = Number(core.getInput('coverage-threshold'));
   const isBelowThreshold = (minPct > report.coverage_pct);
@@ -8664,26 +8671,31 @@ async function run() {
 
   if (isBelowThreshold) {
     commitComment += `\n\n:no_entry: Coverage does not meet minimum requirement of ${minPct}%.`;
+      core.setFailed(`Code coverage of ${report.coverage_pct}% falls below minimum required coverage of ${minPct}%`);
   }
 
 
-  if (github.context.payload.pull_request) {
+  if (ctx.payload.pull_request) {
     const token = core.getInput('token');
     const octokit = github.getOctokit(token);
-    const pr_number = github.context.payload.pull_request.number;
+    const pr_number = ctx.payload.pull_request.number;
     await octokit.rest.issues.createComment({
-      owner: github.context.payload.repository.owner.login,
-      repo: github.context.payload.repository.name,
+      owner: ctx.payload.repository.owner.login,
+      repo: ctx.payload.repository.name,
       issue_number: pr_number,
       body: commitComment,
     });
-
-    if (isBelowThreshold) {
-      core.error(`Code coverage of ${report.coverage_pct}% falls below minimum required coverage of ${minPct}%`);
-      core.setFailed(`Code coverage of ${report.coverage_pct}% falls below minimum required coverage of ${minPct}%`);
-    }
   }
 }
+
+async function run() {
+  try {
+    await generateReport();
+  } catch (e) {
+    core.setFailed(e);
+  }
+}
+
 
 run();
 
