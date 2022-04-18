@@ -23,7 +23,7 @@ on:
   push:
     branches:
       - main
-      - 'releases/*
+      - 'releases/*'
 
 jobs:
   coverage:
@@ -33,7 +33,7 @@ jobs:
       with:
         # default fetch-depth is insufficent to find previous coverage notes
         fetch-depth: 10
-    - uses: gwatts/go-coverage-action@v1
+    - uses: gwatts/golang-coverage-action@v1
       id: coverage
       with:
         # Optional coverage threshold; check will fail if coverage is
