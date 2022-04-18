@@ -26,6 +26,10 @@ inputs:
     description: 'Fail the build if the coverage drops below supplied percentage'
     required: false
     default: 0 
+  fail-coverage:
+    description: 'Fail the build if coverage drops below coverage-threshold.  One of "always", "never" or "only_pull_requests"'
+    required: false
+    default: only_pull_requests
 outputs:
   report-pathname:
     description: 'The full pathname of the generated coverage report'
@@ -33,6 +37,8 @@ outputs:
     description: 'The full pathname of the raw .cov coverage data'
   coverage-pct:
     description: 'The coverage figure for the whole project.  e.g "83.4"'
+  meets-threshold:
+    description: 'Set to true if the current coverage is greater than coverage-threshold'
   coverage-last-pct:
     description: 'The prior coverage percentage'
   coverage-last-sha:

@@ -1,10 +1,10 @@
 # Go Coverage Action
 
-A Github action for generating Go coverage reports.
+A Github action for generating Go coverage reports that does not depend on third party services.
 
 ## Overview
 
-This action will generate Go coverage reports without using any third party services, rendinerg it suitable for use with private repos.
+This action will generate Go coverage reports without using any third party services, making it suitable for use with private repos.
 
 It stores previous coverage data as git commit notes associated with previous shas, so that they can be compared with changes in open pull requests.
 
@@ -23,7 +23,6 @@ on:
   push:
     branches:
       - main
-      - 'releases/*'
 
 jobs:
   coverage:
@@ -33,36 +32,40 @@ jobs:
       with:
         # default fetch-depth is insufficent to find previous coverage notes
         fetch-depth: 10
-    - uses: gwatts/golang-coverage-action@v1
+    - uses: gwatts/go-coverage-action@v1
       id: coverage
       with:
-        # Optional coverage threshold; check will fail if coverage is
-        # below this number
+        # Optional coverage threshold
+        # use fail-coverage to determine what should happen below this threshold
         coverage-threshold: 80
         
         # A url that the html report will be accessible at, once your
-        # workflow uploads it
+        # workflow uploads it.
         # used in the pull request comment.
         report-url: https://artifacts.example.com/go-coverage/${{ github.sha}}.html
-
-        # Github token to give permission to post the comment
-        # token: ${{ github.token }}
-
-        # Directory to execute go test from; defaults to the
-        # current directory
-        # working-directory: ./my-go-files
-
-        # Override the report filename
-        # report-filename: coverage.html
-
-        # Additional arguments to pass to go test, must be a JSON array
-        # test-args: '["-tags", "mytag"]'
 
     - name: Upload coverage to s3
       # ensure this runs whether the threshold is met, or not using always()
       if: always() && steps.coverage.outputs.report-pathname != ''
       run: |
         aws s3 cp ${{ steps.coverage.outputs.report-pathname }} s3://artifacts.example.com-bucket/go-coverage/${{ github.sha}}.html
+```
+
+
+If you want to generate a badge to put in the readme, you could add an extra step to the workflow to create one.  For example using the [dynamic badges action](https://github.com/Schneegans/dynamic-badges-action):
+
+
+```yaml
+    - name: Update coverage badge
+      uses: schneegans/dynamic-badges-action@v1.3.0
+      if: github.ref_name == 'main'
+      with:
+        auth: ${{ secrets.COVERAGE_GIST_SECRET }}
+        gistID: 788ds7a07299ab2728a33
+        filename: coverage.json
+        label: Go Coverage
+        message: ${{ steps.coverage.outputs.coverage-pct }}%
+        color: ${{ steps.coverage.outputs.meets-threshold == 'true' && 'green' || 'red' }}
 ```
 
 ##
