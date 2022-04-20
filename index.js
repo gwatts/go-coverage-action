@@ -259,7 +259,7 @@ async function generateReport() {
   core.setOutput('meets-threshold', stats.meetsThreshold);
 
   const nowData = {
-    'golang-coverage-action-fmt': DATA_FMT_VERSION,
+    'go-coverage-action-fmt': DATA_FMT_VERSION,
     'coverage_pct': current.coverage_pct,
     'pkg_stats': current.pkg_stats,
   };
