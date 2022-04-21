@@ -11191,7 +11191,7 @@ async function generatePRComment(stats) {
   if (stats.prior.coverage_pct != null) {
     core.info(`Previous coverage: ${stats.prior.coverage_pct}% as of ${stats.prior.sha}`);
 
-    commitComment = `:arrow_right: Go test coverage stayed the same at ${stats.coverage_pct}% compared to ${stats.prior.sha}`;
+    commitComment = `:arrow_right: Go test coverage stayed the same at ${stats.current.coverage_pct}% compared to ${stats.prior.sha}`;
     if (stats.deltaPct > 0) {
       commitComment = `:arrow_up: Go test coverage increased from ${stats.prior.coverage_pct}% to ${stats.current.coverage_pct}% compared to ${stats.prior.sha}`;
     } else if (stats.deltaPct < 0) {
@@ -11229,7 +11229,8 @@ async function generatePRComment(stats) {
         commitComment += `${newPct >= priorPct ? '+' : '-'} ${pkgName.padEnd(maxPkgLen, ' ')} | ${priorPctFmt.padEnd(6, ' ')}         | ${newPctFmt.padEnd(5, ' ')}%\n`;
       }
       commitComment += '```\n\n';
-      commitComment += '\n';
+    } else {
+      commitComment += `\nNo change in coverage for any package.\n\n`;
     }
   }
 
