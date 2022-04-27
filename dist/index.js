@@ -11185,8 +11185,10 @@ async function generateCoverage() {
 }
 
 
+const commentMarker = '<!-- gocovaction -->';
+
 async function generatePRComment(stats) {
-  let commitComment = `Go test coverage: ${stats.current.coverage_pct}`;
+  let commitComment = `${commentMarker}Go test coverage: ${stats.current.coverage_pct}% for commit ${ctx.sha}`;
 
   if (stats.prior.coverage_pct != null) {
     core.info(`Previous coverage: ${stats.prior.coverage_pct}% as of ${stats.prior.sha}`);
@@ -11206,7 +11208,7 @@ async function generatePRComment(stats) {
   }
 
   if (!stats.meetsThreshold) {
-    commitComment += `\n\n:no_entry: Coverage does not meet minimum requirement of ${stats.minPct}%.\n`;
+    commitComment += `\n:no_entry: Coverage does not meet minimum requirement of ${stats.minPct}%.\n`;
   }
 
   const reportUrl = core.getInput('report-url');
@@ -11238,6 +11240,25 @@ async function generatePRComment(stats) {
 
 }
 
+
+async function findPreviousComment(octokit, issue_number) {
+  const it = octokit.paginate.iterator(octokit.rest.issues.listComments, {
+    owner: ctx.payload.repository.owner.login,
+    repo: ctx.payload.repository.name,
+    issue_number: issue_number,
+    per_page: 100
+  });
+
+  for await (const {data: comments} of it) {
+    core.info(`comments: ${JSON.stringify(comments)}`);
+    for (const comment of comments) {
+      if (comment.body.startsWith(commentMarker)) {
+        return comment.id;
+      }
+    }
+  }
+  return null;
+}
 
 async function generateReport() {
   await setup();
@@ -11297,12 +11318,24 @@ async function generateReport() {
     const token = core.getInput('token');
     const octokit = github.getOctokit(token);
     const pr_number = ctx.payload.pull_request.number;
-    await octokit.rest.issues.createComment({
-      owner: ctx.payload.repository.owner.login,
-      repo: ctx.payload.repository.name,
-      issue_number: pr_number,
-      body: comment,
-    });
+    const prev_comment_id = await findPreviousComment(octokit, pr_number);
+    if (prev_comment_id) {
+      core.info(`Updating existing comment id ${prev_comment_id}`);
+      await octokit.rest.issues.updateComment({
+        owner: ctx.payload.repository.owner.login,
+        repo: ctx.payload.repository.name,
+        comment_id: prev_comment_id,
+        body: comment
+      });
+    } else {
+      core.info('Creating new comment');
+      await octokit.rest.issues.createComment({
+        owner: ctx.payload.repository.owner.login,
+        repo: ctx.payload.repository.name,
+        issue_number: pr_number,
+        body: comment,
+      });
+    }
   }
 }
 
