@@ -206,7 +206,6 @@ async function generatePRComment(stats) {
 
   if (stats.prior.coverage_pct !== null) {
     const delta = packageDelta(stats.prior.pkg_stats, stats.current.pkg_stats);
-    core.info(`got delta = ${delta.length}`);
     if (delta.length) {
       const maxPkgLen = Math.max.apply(null, delta.map(pkg => pkg[0].length));
       commitComment += '\nUpdated Packages:\n\n```diff\n';
@@ -237,7 +236,6 @@ async function findPreviousComment(octokit, issue_number) {
   });
 
   for await (const {data: comments} of it) {
-    core.info(`comments: ${JSON.stringify(comments)}`);
     for (const comment of comments) {
       if (comment.body.startsWith(commentMarker)) {
         return comment.id;
