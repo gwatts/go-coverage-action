@@ -1,20 +1,29 @@
 # Go Coverage Action
 
-A Github action for generating Go coverage reports that does not depend on third party services.
+A Github action for generating test coverage reports for the Go programming language, that does not depend on third party services.
 
 ## Overview
 
-This action will generate Go coverage reports without using any third party services, making it suitable for use with private repos.
+This action will generate Go coverage reports for pull requests and other commits without using any third party services, making it suitable for use with private repos.
 
-It stores previous coverage data as git commit notes associated with previous shas, so that they can be compared with changes in open pull requests.
+It stores previous coverage data as git commit notes (in a separate namespace; not normally user-visible) associated with previous commits, so that they can be compared with changes in open pull requests.
 
-It's a rough and ready work in progress.
+It will generate a [job summary](https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/) giving coverage statistics on each run and optionally add a comment noting any changes to pull requests:
+
+
+
+
 
 ## Usage
 
 The action will generate a temporary file containing the html report.  It's expected that your workflow will uploaded this report somewhere to make it accessible/viewable, or store it as an artifact.
 
-e.g.
+### Example Comment
+
+![Example comment](./docs/comment.png)
+
+
+### Example Workflow
 
 ```yaml
 name: "Go Coverage"
@@ -32,6 +41,7 @@ jobs:
       with:
         # default fetch-depth is insufficent to find previous coverage notes
         fetch-depth: 10
+
     - uses: gwatts/go-coverage-action@v1
       id: coverage
       with:
@@ -42,13 +52,13 @@ jobs:
         # A url that the html report will be accessible at, once your
         # workflow uploads it.
         # used in the pull request comment.
-        report-url: https://artifacts.example.com/go-coverage/${{ github.sha}}.html
+        report-url: https://artifacts.example.com/go-coverage/${{ github.ref_name}}.html
 
     - name: Upload coverage to s3
-      # ensure this runs whether the threshold is met, or not using always()
+      # ensure this runs regardless of whether the threshold is met using always()
       if: always() && steps.coverage.outputs.report-pathname != ''
       run: |
-        aws s3 cp ${{ steps.coverage.outputs.report-pathname }} s3://artifacts.example.com-bucket/go-coverage/${{ github.sha}}.html
+        aws s3 cp ${{ steps.coverage.outputs.report-pathname }} s3://artifacts.example.com-bucket/go-coverage/${{ github.ref_name}}.html
 ```
 
 
@@ -68,4 +78,3 @@ If you want to generate a badge to put in the readme, you could add an extra ste
         color: ${{ steps.coverage.outputs.meets-threshold == 'true' && 'green' || 'red' }}
 ```
 
-##
