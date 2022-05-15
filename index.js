@@ -302,11 +302,12 @@ async function generateReport() {
 
 
 
-  if (ctx.payload.pull_request) {
-    const comment = await generatePRComment(stats);
-    await core.summary
-      .addRaw(comment)
-      .write();
+  const comment = await generatePRComment(stats);
+  await core.summary
+    .addRaw(comment)
+    .write();
+
+  if (core.getBooleanInput('add-comment') && ctx.payload.pull_request) {
     const token = core.getInput('token');
     const octokit = github.getOctokit(token);
     const pr_number = ctx.payload.pull_request.number;

@@ -30,6 +30,10 @@ inputs:
     description: 'Fail the build if coverage drops below coverage-threshold.  One of "always", "never" or "only_pull_requests"'
     required: false
     default: only_pull_requests
+  add-comment:
+    description: 'Adds a comment to the PR with coverage information if true. If false will only add an action summary report.'
+    required: false
+    default: true
 outputs:
   report-pathname:
     description: 'The full pathname of the generated coverage report'
