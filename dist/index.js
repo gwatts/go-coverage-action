@@ -11319,7 +11319,7 @@ const DATA_FMT_VERSION = 1;
 async function exec(cmd, args, stdin) {
   try {
     const wd = core.getInput('working-directory');
-    core.info(`executing  ${cmd} ${args.join(' ')}`);
+    core.startGroup(`$ ${cmd} ${args.join(' ')}`);
     const subprocess = execa(cmd, args,
       {
         cwd: wd,
@@ -11338,8 +11338,9 @@ async function exec(cmd, args, stdin) {
     return {output: all};
   } catch (e) {
     core.warning(`Failed to run ${cmd} ${args.join(' ')}`);
-    console.info(e.all);
     throw (e);
+  } finally {
+    core.endGroup();
   }
 }
 
@@ -11419,15 +11420,14 @@ async function generateCoverage() {
     'with_tests': 0,
     'no_tests': 0,
     'coverage_pct': 0,
-    'pathname': '',
+    'reportPathname': '',
+    'gocovPathname': '',
   };
 
-  const covFile = path.join(tmpdir, 'go.cov');
-  core.setOutput('gocov-pathname', covFile);
+  report.gocovPathname = path.join(tmpdir, 'go.cov');
 
   const filename = core.getInput('report-filename');
-  report.pathname = filename.startsWith('/') ? filename : path.join(tmpdir, filename);
-  core.setOutput('report-pathname', report.pathname);
+  report.reportPathname = filename.startsWith('/') ? filename : path.join(tmpdir, filename);
 
 
   const coverMode = core.getInput('cover-mode');
@@ -11443,7 +11443,7 @@ async function generateCoverage() {
   }
 
   const args = ['test'].concat(testArgs).concat(
-    ['-covermode', coverMode, '-coverprofile', covFile, './...']);
+    ['-covermode', coverMode, '-coverprofile', report.gocovPathname, './...']);
   const {output: testOutput} = await exec('go', args);
 
   const pkgStats = {};
@@ -11460,10 +11460,10 @@ async function generateCoverage() {
   }
 
 
-  await exec('go', ['tool', 'cover', '-html', covFile, '-o', report.pathname]);
-  core.info(`Generated ${report.pathname}`);
+  await exec('go', ['tool', 'cover', '-html', report.gocovPathname, '-o', report.reportPathname]);
+  core.info(`Generated ${report.reportPathname}`);
 
-  const {output: coverOutput} = await exec('go', ['tool', 'cover', '-func', covFile]);
+  const {output: coverOutput} = await exec('go', ['tool', 'cover', '-func', report.gocovPathname]);
   const m = coverOutput.match(/^total:.+\s([\d.]+)%/m);
   if (!m) {
     throw ('Failed to parse output of go tool cover');
@@ -11484,15 +11484,14 @@ async function generatePRComment(stats) {
   if (stats.prior.coverage_pct != null) {
     core.info(`Previous coverage: ${stats.prior.coverage_pct}% as of ${stats.prior.sha}`);
 
-    commitComment = `:arrow_right: Go test coverage stayed the same at ${stats.current.coverage_pct}% compared to ${stats.prior.sha}`;
+    commitComment = `${commentMarker}:arrow_right: Go test coverage stayed the same at ${stats.current.coverage_pct}% compared to ${stats.prior.sha}`;
     if (stats.deltaPct > 0) {
-      commitComment = `:arrow_up: Go test coverage increased from ${stats.prior.coverage_pct}% to ${stats.current.coverage_pct}% compared to ${stats.prior.sha}`;
+      commitComment = `${commentMarker}:arrow_up: Go test coverage increased from ${stats.prior.coverage_pct}% to ${stats.current.coverage_pct}% compared to ${stats.prior.sha}`;
     } else if (stats.deltaPct < 0) {
-      commitComment = `:arrow_down: Go test coverage decreased from ${stats.prior.coverage_pct}% to ${stats.current.coverage_pct}% compared to ${stats.prior.sha}`;
+      commitComment = `${commentMarker}:arrow_down: Go test coverage decreased from ${stats.prior.coverage_pct}% to ${stats.current.coverage_pct}% compared to ${stats.prior.sha}`;
     }
   } else {
     core.info('No prior coverage information found in log');
-    core.setOutput('coverage-delta', 0);
   }
   if (stats.current.no_tests > 0) {
     commitComment += `\n:warning: ${stats.current.no_tests} of ${stats.current.pkg_count} packages have zero coverage.`
@@ -11519,7 +11518,7 @@ async function generatePRComment(stats) {
         const [pkgName, priorPct, newPct] = pkg;
         const priorPctFmt = priorPct.toFixed(1) + '%';
         const newPctFmt = newPct.toFixed(1) + '%';
-        commitComment += `${newPct >= priorPct ? '+' : '-'} ${pkgName.padEnd(maxPkgLen, ' ')} | ${priorPctFmt.padEnd(6, ' ')}         | ${newPctFmt.padEnd(5, ' ')}%\n`;
+        commitComment += `${newPct >= priorPct ? '+' : '-'} ${pkgName.padEnd(maxPkgLen, ' ')} | ${priorPctFmt.padEnd(6, ' ')}         | ${newPctFmt.padEnd(5, ' ')}\n`;
       }
       commitComment += '```\n\n';
     } else {
@@ -11576,6 +11575,7 @@ async function generateReport() {
   core.info(`Minimum required coverage: ${stats.minPct}%`);
   core.info(`Coverage delta: ${stats.deltaPctFmt}%`);
 
+  core.startGroup('Set output values');
   core.setOutput('coverage-pct', stats.current.coverage_pct);
   core.setOutput('package-count', stats.current.pkg_count);
   core.setOutput('uncovered-packages', stats.current.no_tests);
@@ -11584,6 +11584,9 @@ async function generateReport() {
   core.setOutput('coverage-last-pct', stats.prior.coverage_pct);
   core.setOutput('coverage-last-sha', stats.prior.sha);
   core.setOutput('meets-threshold', stats.meetsThreshold);
+  core.setOutput('gocov-pathname', current.gocovPathname);
+  core.setOutput('report-pathname', current.reportPathname);
+  core.endGroup();
 
   const nowData = {
     'go-coverage-action-fmt': DATA_FMT_VERSION,
