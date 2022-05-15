@@ -2,6 +2,8 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const {execa} = require('execa');
 const path = require('path');
+const {version} = require('./package.json');
+
 
 
 const tmpdir = process.env['RUNNER_TEMP'];
@@ -335,6 +337,8 @@ async function generateReport() {
 
 async function run() {
   try {
+    core.info(`Running go-coverage-action version ${version}`);
+
     await generateReport();
   } catch (e) {
     core.setFailed(e);
