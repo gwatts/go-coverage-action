@@ -1,5 +1,5 @@
 name: 'Go Coverage'
-description: 'Generates Go coverage reports'
+description: 'Generates Go coverage reports without third party services'
 inputs:
   token:
     description: github token
@@ -8,15 +8,15 @@ inputs:
     description: URL of final uploaded report.  e.g. https://reports.example.com/{{ $github.sha }}/cover.html
     required: false
   working-directory:
-    description: 'working directory.  defaults to project root'
+    description: 'Working directory.  defaults to project root'
     required: false
     default: ''
   report-filename:
-    description: 'file or pathname for the resulting html coverage report'
+    description: 'File or pathname for the resulting html coverage report'
     required: false
     default: 'go-coverage.html'
   cover-mode:
-    description: 'parameter to pass to go tests -covermode argument.  Either count, set or atomic'
+    description: 'Parameter to pass to go tests -covermode argument.  Either count, set or atomic'
     default: 'count'
   test-args:
     description: 'Build arguments to pass to go test'
