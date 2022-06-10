@@ -44,10 +44,14 @@ async function exec(cmd, args, stdin) {
 
 async function setup() {
   await exec('go', ['version']);
+  await fetchCoverage();
+}
 
+
+async function fetchCoverage() {
   try {
     await exec('git', ['fetch', 'origin',
-      'refs/notes/gocoverage:refs/notes/gocoverage']);
+      '+refs/notes/gocoverage:refs/notes/gocoverage']);
   } catch (e) {
     // expected to fail if the ref hasn't been created yet
     core.info('no existing gocoverage ref');
@@ -57,6 +61,7 @@ async function setup() {
 
 async function setCoverageNote(data) {
   const jsdata = JSON.stringify(data);
+  await fetchCoverage();
   await exec('git', ['notes',
     '--ref=gocoverage',
     'add',
