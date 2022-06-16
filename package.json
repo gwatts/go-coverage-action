@@ -27,7 +27,7 @@
     },
     "homepage": "https://github.com/gwatts/go-coverage-action#readme",
     "dependencies": {
-        "@actions/core": "^1.8.2",
+        "@actions/core": "^1.9.0",
         "@actions/github": "^5.0.2",
         "execa": "^6.1.0"
     },
