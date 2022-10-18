@@ -1,6 +1,6 @@
 package testmod
 
-func returnColor(code string) string {
+func ReturnColor(code string) string {
 	switch code {
 	case "red":
 		return "#f00"
