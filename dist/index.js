@@ -11558,8 +11558,12 @@ async function generateCoverage() {
     throw (`invalid value for test-args; must be a JSON array of strings, got ${testArgs} (${e})`);
   }
 
-  const args = ['test'].concat(testArgs).concat(
-    ['-covermode', coverMode, '-coverprofile', report.gocovPathname, './...']);
+  const args = ['test'].concat(testArgs).concat([
+    '-covermode', coverMode,
+    '-coverprofile', report.gocovPathname,
+    '-coverpkg', './...',
+    './...'
+  ]);
   const {output: testOutput} = await exec('go', args);
 
   const pkgStats = {};
