@@ -133,6 +133,7 @@ async function generateCoverage() {
 
 
   const coverMode = core.getInput('cover-mode');
+  const coverPkg = core.getInput('cover-pkg');
 
   let testArgs;
   try {
@@ -144,8 +145,12 @@ async function generateCoverage() {
     throw (`invalid value for test-args; must be a JSON array of strings, got ${testArgs} (${e})`);
   }
 
-  const args = ['test'].concat(testArgs).concat(
-    ['-covermode', coverMode, '-coverprofile', report.gocovPathname, './...']);
+  const args = ['test'].concat(testArgs).concat([
+    '-covermode', coverMode,
+    '-coverprofile', report.gocovPathname,
+    ...(coverPkg ? ['-coverpkg', coverPkg] : []),
+    './...'
+  ]);
   const {output: testOutput} = await exec('go', args);
 
   const pkgStats = {};

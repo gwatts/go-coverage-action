@@ -18,6 +18,9 @@ inputs:
   cover-mode:
     description: 'Parameter to pass to go tests -covermode argument.  Either count, set or atomic'
     default: 'count'
+  cover-pkg:
+    description: 'Parameter to pass to go tests -coverpkg argument. Leave empty to omit flag'
+    default: ''
   test-args:
     description: 'Build arguments to pass to go test'
     default: '[]'

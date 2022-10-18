@@ -22,6 +22,7 @@ jobs:
       with:
         working-directory: test-go-module
         coverage-threshold: 0
+        cover-pkg: ./...
     - if: steps.coverage.outputs.coverage-pct < 40
       uses: actions/github-script@v6
       with:
