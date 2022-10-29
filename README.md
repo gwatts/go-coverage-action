@@ -48,6 +48,9 @@ jobs:
         # Optional coverage threshold
         # use fail-coverage to determine what should happen below this threshold
         coverage-threshold: 80
+
+        # collect coverage for all packages beyond the one under test
+        cover-pkg: ./...
         
         # A url that the html report will be accessible at, once your
         # workflow uploads it.
