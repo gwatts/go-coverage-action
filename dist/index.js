@@ -12340,6 +12340,8 @@ async function generateCoverage() {
     pkgStats[pkgPath] = [matchCount / stmtCount * 100];
     if (matchCount > 0) {
       report.with_tests++;
+    } else {
+      report.no_tests++;
     }
   }
   report.coverage_pct = globalPct;
@@ -12423,16 +12425,16 @@ async function calcCoverage(goCovFilename) {
 const commentMarker = '<!-- gocovaction -->';
 
 async function generatePRComment(stats) {
-  let commitComment = `${commentMarker}Go test coverage: ${stats.current.coverage_pct}% for commit ${ctx.sha}`;
+  let commitComment = `${commentMarker}Go test coverage: ${stats.current.coverage_pct.toFixed(1)}% for commit ${ctx.sha}`;
 
   if (stats.prior.coverage_pct != null) {
     core.info(`Previous coverage: ${stats.prior.coverage_pct}% as of ${stats.prior.sha}`);
 
-    commitComment = `${commentMarker}:arrow_right: Go test coverage stayed the same at ${stats.current.coverage_pct}% compared to ${stats.prior.sha}`;
+    commitComment = `${commentMarker}:arrow_right: Go test coverage stayed the same at ${stats.current.coverage_pct.toFixed(1)}% compared to ${stats.prior.sha}`;
     if (stats.deltaPct > 0) {
-      commitComment = `${commentMarker}:arrow_up: Go test coverage increased from ${stats.prior.coverage_pct}% to ${stats.current.coverage_pct}% compared to ${stats.prior.sha}`;
+      commitComment = `${commentMarker}:arrow_up: Go test coverage increased from ${stats.prior.coverage_pct.toFixed(1)}% to ${stats.current.coverage_pct.toFixed(1)}% compared to ${stats.prior.sha}`;
     } else if (stats.deltaPct < 0) {
-      commitComment = `${commentMarker}:arrow_down: Go test coverage decreased from ${stats.prior.coverage_pct}% to ${stats.current.coverage_pct}% compared to ${stats.prior.sha}`;
+      commitComment = `${commentMarker}:arrow_down: Go test coverage decreased from ${stats.prior.coverage_pct.toFixed(1)}% to ${stats.current.coverage_pct.toFixed(1)}% compared to ${stats.prior.sha}`;
     }
   } else {
     core.info('No prior coverage information found in log');
