@@ -12337,7 +12337,7 @@ async function generateCoverage() {
   const [globalPct, pkgStmts] = await calcCoverage(report.gocovPathname);
   for (const [pkgPath, [stmtCount, matchCount]] of Object.entries(pkgStmts)) {
     report.pkg_count++;
-    pkgStats[pkgPath] = [matchCount / stmtCount];
+    pkgStats[pkgPath] = [matchCount / stmtCount] * 100;
     if (matchCount > 0) {
       report.with_tests++;
     }
