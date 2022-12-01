@@ -128,6 +128,7 @@ async function generateCoverage() {
     'pkg_count': 0,
     'with_tests': 0,
     'no_tests': 0,
+    'skipped_count': 0,
     'coverage_pct': 0,
     'reportPathname': '',
     'gocovPathname': '',
@@ -162,7 +163,7 @@ async function generateCoverage() {
   await exec('go', args);
 
   const pkgStats = {};
-  const [globalPct, pkgStmts] = await calcCoverage(report.gocovPathname);
+  const [globalPct, skippedFileCount, pkgStmts] = await calcCoverage(report.gocovPathname);
   for (const [pkgPath, [stmtCount, matchCount]] of Object.entries(pkgStmts)) {
     report.pkg_count++;
     pkgStats[pkgPath] = [matchCount / stmtCount * 100];
@@ -173,6 +174,7 @@ async function generateCoverage() {
     }
   }
   report.coverage_pct = globalPct;
+  report.skipped_count = skippedFileCount;
 
   /*
   for (const m of testOutput.matchAll(/^(\?|ok)\s+([^\t]+)(.+coverage: ([\d.]+)%)?/gm)) {
@@ -213,6 +215,7 @@ async function calcCoverage(goCovFilename) {
   const seenIds = {};
   let globalStmts = 0;
   let globalCount = 0;
+  let skippedFiles = new Set();
 
   const ignorePattern = core.getInput('ignore-pattern');
   const ignoreRe = ignorePattern && new RegExp(ignorePattern);
@@ -232,6 +235,7 @@ async function calcCoverage(goCovFilename) {
     core.info(`fn: ${fn}`);
     if (ignoreRe && fn.match(ignoreRe)) {
       core.info('Skipping ' + fn);
+      skippedFiles.add(fn);
       return;
     }
     const stmtCount = Number(m[2]);
@@ -256,7 +260,7 @@ async function calcCoverage(goCovFilename) {
   await events.once(rl, 'close');
   const globalPct = globalCount / globalStmts * 100;
   core.info(`global stmts=${globalStmts} count=${globalCount}, pct=${globalPct}`);
-  return [globalPct, pkgStats];
+  return [globalPct, skippedFiles.size, pkgStats];
 }
 
 
@@ -273,6 +277,9 @@ async function generatePRComment(stats) {
       commitComment = `${commentMarker}:arrow_up: Go test coverage increased from ${stats.prior.coverage_pct.toFixed(1)}% to ${stats.current.coverage_pct.toFixed(1)}% compared to ${stats.prior.sha}`;
     } else if (stats.deltaPct < 0) {
       commitComment = `${commentMarker}:arrow_down: Go test coverage decreased from ${stats.prior.coverage_pct.toFixed(1)}% to ${stats.current.coverage_pct.toFixed(1)}% compared to ${stats.prior.sha}`;
+    }
+    if (stats.current.skipped_count > 0) {
+      commitComment += ` (${stats.current.skipped_count} ignored files)`;
     }
   } else {
     core.info('No prior coverage information found in log');
@@ -380,6 +387,7 @@ async function generateReport() {
     'go-coverage-action-fmt': DATA_FMT_VERSION,
     'coverage_pct': current.coverage_pct,
     'pkg_stats': current.pkg_stats,
+    'skipped_count': current.skipped_count,
   };
   await setCoverageNote(nowData);
 
