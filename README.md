@@ -18,6 +18,8 @@ It will generate a [job summary](https://github.blog/2022-05-09-supercharging-gi
 
 The action will generate a temporary file containing the html report.  It's expected that your workflow will uploaded this report somewhere to make it accessible/viewable, or store it as an artifact.
 
+**NOTE:** To calculate prior coverage correctly, it's important the action runs on push to the main branch, as well as on pull request events.
+
 ### Example Comment
 
 ![Example comment](./docs/comment.png)
