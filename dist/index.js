@@ -12238,6 +12238,7 @@ async function fetchCoverage() {
 
 async function setCoverageNote(data) {
   const jsdata = JSON.stringify(data);
+  core.info(`new coverage:  ${output}`);
   await fetchCoverage();
   await exec('git', ['notes',
     '--ref=gocoverage',
@@ -12262,6 +12263,7 @@ async function getPriorCoverage() {
         '--grep=coverage_pct', '-n', '1', ref]);
 
     try {
+      core.info(`prior coverage:  ${output}`);
       const lines = output.split('\n');
       const sha = lines[0];
       const data = JSON.parse(lines[1]);
@@ -12334,6 +12336,7 @@ async function generateCoverage() {
   const pkgStats = {};
   const [globalPct, pkgStmts] = await calcCoverage(report.gocovPathname);
   for (const [pkgPath, [stmtCount, matchCount]] of Object.entries(pkgStmts)) {
+    report.pkg_count++;
     pkgStats[pkgPath] = [matchCount / stmtCount];
     if (matchCount > 0) {
       report.with_tests++;
