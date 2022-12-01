@@ -279,7 +279,7 @@ async function generatePRComment(stats) {
       commitComment = `${commentMarker}:arrow_down: Go test coverage decreased from ${stats.prior.coverage_pct.toFixed(1)}% to ${stats.current.coverage_pct.toFixed(1)}% compared to ${stats.prior.sha}`;
     }
     if (stats.current.skipped_count > 0) {
-      commitComment += ` (${stats.current.skipped_count} ignored files)`;
+      commitComment += ` _(${stats.current.skipped_count} ignored files)_`;
     }
   } else {
     core.info('No prior coverage information found in log');
