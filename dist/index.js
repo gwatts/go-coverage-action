@@ -12385,7 +12385,7 @@ async function calcCoverage(goCovFilename) {
   const seenIds = {};
   let globalStmts = 0;
   let globalCount = 0;
-
+  or
   const rl = readline.createInterface({
     input: fs.createReadStream(goCovFilename),
     crlfDelay: Infinity
@@ -12440,7 +12440,12 @@ async function generatePRComment(stats) {
     core.info('No prior coverage information found in log');
   }
   if (stats.current.no_tests > 0) {
-    commitComment += `\n:warning: ${stats.current.no_tests} of ${stats.current.pkg_count} packages have zero coverage.`
+    commitComment += `\n:warning: ${stats.current.no_tests} of ${stats.current.pkg_count} packages have zero coverage.`;
+    commitComment += `<details>\n`;
+    for (const pkgName of Object.keys(stats.current.pkg_stats).sort()) {
+      commitComment += `* ${pkgName}\n`;
+    }
+    commitComment += `</details>\n`;
   }
 
   if (!stats.meetsThreshold) {
