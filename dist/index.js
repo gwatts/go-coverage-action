@@ -15488,6 +15488,7 @@ async function generateCoverage() {
     'pkg_count': 0,
     'with_tests': 0,
     'no_tests': 0,
+    'skipped_count': 0,
     'coverage_pct': 0,
     'reportPathname': '',
     'gocovPathname': '',
@@ -15523,7 +15524,7 @@ async function generateCoverage() {
   await exec('go', args);
 
   const pkgStats = {};
-  const [globalPct, pkgStmts] = await calcCoverage(report.gocovPathname, report.gocovAggPathname);
+  const [globalPct, skippedFileCount, pkgStmts] = await calcCoverage(report.gocovPathname, report.gocovAggPathname);
   for (const [pkgPath, [stmtCount, matchCount]] of Object.entries(pkgStmts)) {
     report.pkg_count++;
     pkgStats[pkgPath] = [matchCount / stmtCount * 100];
@@ -15535,6 +15536,7 @@ async function generateCoverage() {
   }
   report.coverage_pct = globalPct;
   report.pkg_stats = pkgStats;
+  report.skipped_count = skippedFileCount;
 
   await exec('go', ['tool', 'cover', '-html', report.gocovPathname, '-o', report.reportPathname]);
   core.info(`Generated ${report.reportPathname}`);
@@ -15549,8 +15551,12 @@ async function calcCoverage(goCovFilename, aggFilename) {
   const idCounts = {};
   let globalStmts = 0; // number of statements globally
   let globalCount = 0; // number of statements with coverage
+  let skippedFiles = new Set();
 
   const wl = fs.createWriteStream(aggFilename);
+
+  const ignorePatterns = core.getMultilineInput('ignore-pattern').map(pat => new RegExp(pat.trim()));
+  core.info(`Ignoring ${ignorePatterns.length} filename patterns`);
 
   const rl = readline.createInterface({
     input: fs.createReadStream(goCovFilename),
@@ -15571,6 +15577,16 @@ async function calcCoverage(goCovFilename, aggFilename) {
     }
     const id = m[1]; // statement identifier; pkgpath + stmt offset
     const pkgPath = path.dirname(id);
+    const fn = id.split(':')[0];
+    for (const re of ignorePatterns) {
+      if (fn.match(re)) {
+        if (!skippedFiles.has(fn)) {
+          core.info('Skipping ' + fn);
+        }
+        skippedFiles.add(fn);
+        return;
+      }
+    }
     const stmtCount = Number(m[2]);
     const matchCount = Number(m[3]);
     if (!pkgStats[pkgPath]) {
@@ -15599,7 +15615,7 @@ async function calcCoverage(goCovFilename, aggFilename) {
 
   const globalPct = globalCount / globalStmts * 100;
   core.info(`Totals stmts=${globalStmts} covered=${globalCount}, pct=${globalPct}`);
-  return [globalPct, pkgStats];
+  return [globalPct, skippedFiles.size, pkgStats];
 }
 
 
@@ -15616,6 +15632,9 @@ async function generatePRComment(stats) {
       commitComment = `${commentMarker}:arrow_up: Go test coverage increased from ${stats.prior.coverage_pct.toFixed(1)}% to ${stats.current.coverage_pct.toFixed(1)}% compared to ${stats.prior.sha}`;
     } else if (stats.deltaPct < 0) {
       commitComment = `${commentMarker}:arrow_down: Go test coverage decreased from ${stats.prior.coverage_pct.toFixed(1)}% to ${stats.current.coverage_pct.toFixed(1)}% compared to ${stats.prior.sha}`;
+    }
+    if (stats.current.skipped_count > 0) {
+      commitComment += ` <i>(${stats.current.skipped_count} ignored files)</i>`;
     }
   } else {
     core.info('No prior coverage information found in log');
@@ -15724,6 +15743,7 @@ async function generateReport() {
     'go-coverage-action-fmt': DATA_FMT_VERSION,
     'coverage_pct': current.coverage_pct,
     'pkg_stats': current.pkg_stats,
+    'skipped_count': current.skipped_count,
   };
   await setCoverageNote(nowData);
 
