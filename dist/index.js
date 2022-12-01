@@ -12238,7 +12238,7 @@ async function fetchCoverage() {
 
 async function setCoverageNote(data) {
   const jsdata = JSON.stringify(data);
-  core.info(`new coverage:  ${output}`);
+  core.info(`new coverage:  ${jsdata}`);
   await fetchCoverage();
   await exec('git', ['notes',
     '--ref=gocoverage',
