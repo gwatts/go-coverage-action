@@ -234,7 +234,7 @@ async function calcCoverage(goCovFilename) {
       globalCount += stmtCount;
       seenIds[id][1] = true;
       pkgStats[pkgPath][1] += stmtCount;
-      core.info('pkg stmts', pkgName, stmtCount)
+      core.info('pkg stmts', pkgPath, stmtCount)
     }
   });
 
