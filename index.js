@@ -1,7 +1,12 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
+
+const events = require('events');
 const {execa} = require('execa');
+const fs = require('fs');
 const path = require('path');
+const readline = require('readline');
+
 const {version} = require('./package.json');
 
 
@@ -151,9 +156,20 @@ async function generateCoverage() {
     ...(coverPkg ? ['-coverpkg', coverPkg] : []),
     './...'
   ]);
-  const {output: testOutput} = await exec('go', args);
+  //const {output: testOutput} = await exec('go', args);
+  await exec('go', args);
 
   const pkgStats = {};
+  const [globalPct, pkgStmts] = calcCoverage(report.gocovPathname);
+  for (const [pkgPath, [stmtCount, matchCount]] of Object.entries(pkgStmts)) {
+    pkgStats[pkgPath] = [matchCount / stmtCount];
+    if (matchCount > 0) {
+      report.with_tests++;
+    }
+  }
+  report.coverage_pct = globalPct;
+
+  /*
   for (const m of testOutput.matchAll(/^(\?|ok)\s+([^\t]+)(.+coverage: ([\d.]+)%)?/gm)) {
     report.pkg_count++;
 
@@ -164,22 +180,66 @@ async function generateCoverage() {
       report.no_tests++;
       pkgStats[m[2]] = [0];
     }
-  }
+}
+    */
 
 
   await exec('go', ['tool', 'cover', '-html', report.gocovPathname, '-o', report.reportPathname]);
   core.info(`Generated ${report.reportPathname}`);
 
-  const {output: coverOutput} = await exec('go', ['tool', 'cover', '-func', report.gocovPathname]);
-  const m = coverOutput.match(/^total:.+\s([\d.]+)%/m);
-  if (!m) {
-    throw ('Failed to parse output of go tool cover');
-  }
-
-  report.coverage_pct = Number(m[1]);
+  /*
+    const {output: coverOutput} = await exec('go', ['tool', 'cover', '-func', report.gocovPathname]);
+    const m = coverOutput.match(/^total:.+\s([\d.]+)%/m);
+    if (!m) {
+      throw ('Failed to parse output of go tool cover');
+    }
+  
+    report.coverage_pct = Number(m[1]);
+    */
   report.pkg_stats = pkgStats;
 
   return report;
+}
+
+// parse the go.cov file to calculate "true" coverage figures per package
+// regardless of whether coverpkg is used.
+async function calcCoverage(goCovFilename) {
+  const pkgStats = {};
+  const seenIds = {};
+  let globalStmts = 0;
+  let globalCount = 0;
+
+  const rl = readline.createInterface({
+    input: fs.createReadStream(goCovFilename),
+    crlfDelay: Infinity
+  });
+
+  const re = /^(.+) (\d+) (\d+)$/;
+  rl.on('line', (line) => {
+    const m = line.match(re);
+    if (!m) return;
+    const id = m[1];
+    const stmtCount = Number(m[2]);
+    const matchCount = Number(m[3]);
+    const pkgPath = path.dirname(id);
+    if (!pkgStats[pkgPath]) {
+      pkgStats[pkgPath] = [0, 0]; // stmts, covered
+    }
+    if (!seenIds[id]) {
+      globalStmts += stmtCount;
+      seenIds[id] = [stmtCount, false];
+      pkgStats[pkgPath][0] += stmtCount;
+    }
+    if (matchCount > 0 && !seenIds[id][1]) {
+      globalCount += stmtCount;
+      seenIds[id][1] = true;
+      pkgStats[pkgPath][1] += stmtCount;
+    }
+  });
+
+  await events.once(rl, 'close');
+  const globalPct = globalCount / globalStmts * 100;
+  return [globalPct, pkgStats];
 }
 
 
