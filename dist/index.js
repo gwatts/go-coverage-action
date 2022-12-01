@@ -12406,13 +12406,13 @@ async function calcCoverage(goCovFilename) {
       globalCount += stmtCount;
       seenIds[id][1] = true;
       pkgStats[pkgPath][1] += stmtCount;
-      core.info('pkg stmts', pkgPath, stmtCount)
+      core.info(`pkg stmts path=${pkgPath}, stmtCount=${stmtCount}`);
     }
   });
 
   await events.once(rl, 'close');
   const globalPct = globalCount / globalStmts * 100;
-  core.info('global', globalStmts, globalCount, globalPct);
+  core.info(`global stmts=${globalStmts} count=${globalCount}, pct=${globalPct}`);
   return [globalPct, pkgStats];
 }
 
