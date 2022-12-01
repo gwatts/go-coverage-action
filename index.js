@@ -213,7 +213,7 @@ async function calcCoverage(goCovFilename) {
   const seenIds = {};
   let globalStmts = 0;
   let globalCount = 0;
-  or
+
   const rl = readline.createInterface({
     input: fs.createReadStream(goCovFilename),
     crlfDelay: Infinity
