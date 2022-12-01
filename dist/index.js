@@ -15476,7 +15476,8 @@ function packageDelta(prior, now) {
   for (const pkgName of [...allNames].sort()) {
     const priorPct = prior[pkgName]?.[0] || 0;
     const nowPct = now[pkgName]?.[0] || 0;
-    if (priorPct != nowPct) {
+    // only count as changed if delta is >0.1%
+    if (Math.abs(priorPct - nowPct) >= 0.1) {
       pkgs.push([pkgName, priorPct, nowPct]);
     }
   }
