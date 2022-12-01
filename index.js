@@ -216,6 +216,7 @@ async function calcCoverage(goCovFilename) {
 
   const ignorePattern = core.getInput('ignore-pattern');
   const ignoreRe = ignorePattern && new RegExp(ignorePattern);
+  core.Info(`ignorePattern="${ignorePattern}"  ignoreRe=${ignoreRe}`);
 
   const rl = readline.createInterface({
     input: fs.createReadStream(goCovFilename),
@@ -228,6 +229,7 @@ async function calcCoverage(goCovFilename) {
     if (!m) return;
     const id = m[1];
     const fn = id.split(':')[0];
+    core.info(`fn: ${fn}`);
     if (ignoreRe && fn.match(ignoreRe)) {
       core.info('Skipping ' + fn);
     }
