@@ -12332,7 +12332,7 @@ async function generateCoverage() {
   await exec('go', args);
 
   const pkgStats = {};
-  const [globalPct, pkgStmts] = calcCoverage(report.gocovPathname);
+  const [globalPct, pkgStmts] = await calcCoverage(report.gocovPathname);
   for (const [pkgPath, [stmtCount, matchCount]] of Object.entries(pkgStmts)) {
     pkgStats[pkgPath] = [matchCount / stmtCount];
     if (matchCount > 0) {
