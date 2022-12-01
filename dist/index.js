@@ -12386,6 +12386,9 @@ async function calcCoverage(goCovFilename) {
   let globalStmts = 0;
   let globalCount = 0;
 
+  const ignorePattern = core.getInput('ignore-pattern');
+  const ignoreRe = ignorePattern && new RegExp(ignorePattern);
+
   const rl = readline.createInterface({
     input: fs.createReadStream(goCovFilename),
     crlfDelay: Infinity
@@ -12396,6 +12399,10 @@ async function calcCoverage(goCovFilename) {
     const m = line.match(re);
     if (!m) return;
     const id = m[1];
+    const fn = id.split(':')[0];
+    if (ignoreRe && fn.match(ignoreRe)) {
+      core.info('Skipping ' + fn);
+    }
     const stmtCount = Number(m[2]);
     const matchCount = Number(m[3]);
     const pkgPath = path.dirname(id);

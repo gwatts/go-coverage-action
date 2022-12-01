@@ -37,6 +37,11 @@ inputs:
     description: 'Adds a comment to the PR with coverage information if true. If false will only add an action summary report.'
     required: false
     default: true
+  ignore-pattern:
+    description: 'A regular expression matching filenames to exclude from coverage statistics (e.g. for generated Go files)'
+    required: false
+    default: ''
+
 outputs:
   report-pathname:
     description: 'The full pathname of the generated coverage report'
