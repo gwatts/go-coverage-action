@@ -232,6 +232,7 @@ async function calcCoverage(goCovFilename) {
     core.info(`fn: ${fn}`);
     if (ignoreRe && fn.match(ignoreRe)) {
       core.info('Skipping ' + fn);
+      return;
     }
     const stmtCount = Number(m[2]);
     const matchCount = Number(m[3]);
