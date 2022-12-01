@@ -12441,9 +12441,11 @@ async function generatePRComment(stats) {
   }
   if (stats.current.no_tests > 0) {
     commitComment += `\n:warning: ${stats.current.no_tests} of ${stats.current.pkg_count} packages have zero coverage.`;
-    commitComment += `<details>\n`;
+    commitComment += `<details><summary>Show zero coverage packages</summary>\n`;
     for (const pkgName of Object.keys(stats.current.pkg_stats).sort()) {
-      commitComment += `* ${pkgName}\n`;
+      if (stats.current.pkg_stats[pkgName] == 0) {
+        commitComment += `* ${pkgName}\n`;
+      }
     }
     commitComment += `</details>\n`;
   }
