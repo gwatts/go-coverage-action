@@ -18,6 +18,10 @@ It will generate a [job summary](https://github.blog/2022-05-09-supercharging-gi
 
 The action will generate a temporary file containing the html report.  It's expected that your workflow will uploaded this report somewhere to make it accessible/viewable, or store it as an artifact.
 
+> **Note**
+>
+> The action is intended to be used in conjunction with a [`push` event](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#push) so that coverage is tracked for commits on the base branch as well, when used with the [`pull_request` event](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_reqeust). If the action cannot retrieve coverage data for previous commits, then it might be less useful than originally intended ( see #34 for more information ).
+
 ### Example Comment
 
 ![Example comment](./docs/comment.png)
