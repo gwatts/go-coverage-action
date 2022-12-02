@@ -20,7 +20,7 @@ The action will generate a temporary file containing the html report.  It's expe
 
 > **Note**
 >
-> The action is intended to be used in conjunction with a [`push` event](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#push) so that coverage is tracked for commits on the base branch as well, when used with the [`pull_request` event](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_reqeust). If the action cannot retrieve coverage data for previous commits, then it might be less useful than originally intended ( see #34 for more information ).
+> The action is intended to be used in conjunction with a [`push` event](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#push) so that coverage is tracked for commits on the base branch as well, when used with the [`pull_request` event](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_reqeust). If the action cannot retrieve coverage data for previous commits, then it might be less useful than originally intended ( see [#34](https://github.com/gwatts/go-coverage-action/issues/34) for more information ).
 
 ### Example Comment
 
