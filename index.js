@@ -376,7 +376,7 @@ async function generateReport() {
   core.info(`Found ${stats.current.pkg_count} packages`);
   core.info(`Packages with tests: ${stats.current.with_tests}`);
   core.info(`Packages with zero tests: ${stats.current.no_tests}`);
-  core.info(`Total coverage: ${stats.current.coverage_pct}%`);
+  core.info(`Total coverage: ${stats.current.coverage_pct.ToFixed(1)}%`);
   core.info(`Minimum required coverage: ${stats.minPct}%`);
   core.info(`Coverage delta: ${stats.deltaPctFmt}%`);
 
@@ -406,9 +406,9 @@ async function generateReport() {
   if (!stats.meetsThreshold) {
     const fail_policy = core.getInput('fail-coverage');
     if (fail_policy == 'always' || (fail_policy == 'only_pull_requests' && ctx.payload.pull_request)) {
-      core.setFailed(`Code coverage of ${stats.current.coverage_pct}% falls below minimum required coverage of ${stats.minPct}%`);
+      core.setFailed(`Code coverage of ${stats.current.coverage_pct.ToFixed(1)}% falls below minimum required coverage of ${stats.minPct}%`);
     } else {
-      core.warning(`Code coverage of ${stats.current.coverage_pct}% falls below minimum required coverage of ${stats.minPct}%`);
+      core.warning(`Code coverage of ${stats.current.coverage_pct.ToFixed(1)}% falls below minimum required coverage of ${stats.minPct}%`);
     }
   }
 
