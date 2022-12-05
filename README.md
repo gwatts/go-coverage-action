@@ -1,12 +1,12 @@
 # Go Coverage Action
 
-A Github action for generating test coverage reports for the Go programming language, that does not depend on third party services.
+A Github action for generating test coverage reports for the Go programming language, that does not utilize third party services, making it suitable for use with private repos.
 
 ## Overview
 
-This action will generate Go coverage reports for pull requests and other commits without using any third party services, making it suitable for use with private repos.
+This action will generate Go coverage reports for pull requests and other commits without using any third party services:  Nothing is uploaded anywhere, nor do any services need to access the repo to produce coverage and change reports.
 
-It stores previous coverage data as git commit notes (in a separate namespace; not normally user-visible) associated with previous commits, so that they can be compared with changes in open pull requests.
+The action stores previous coverage data as git commit notes (in a separate namespace; not normally user-visible) associated with previous commits, so that they can be compared with changes in open pull requests.
 
 It will generate a [job summary](https://github.blog/2022-05-09-supercharging-github-actions-with-job-summaries/) giving coverage statistics on each run and optionally add a comment noting any changes to pull requests:
 
@@ -16,9 +16,17 @@ It will generate a [job summary](https://github.blog/2022-05-09-supercharging-gi
 
 ## Usage
 
-The action will generate a temporary file containing the html report.  It's expected that your workflow will uploaded this report somewhere to make it accessible/viewable, or store it as an artifact.
+To operate effectively, this action **should be triggered on any push to the main branch**, so baseline coverage data can be tracked and referenced during pull requests.
 
-**NOTE:** To calculate prior coverage correctly, it's important the action runs on push to the main branch, as well as on pull request events.
+This worflow:
+
+1. On merge to `main`, the action runs `go test`, generates coverage data and attaches it to a [git note](https://git-scm.com/docs/git-notes) associated with the latest's commits' SHA.
+2. When a PR is opened the action generates new coverage data and calculates the delta based on the most recent commit to `main`
+3. The output of `go test` and `go tool cover` (report HTML and .cov files) and made available to other build steps on success
+
+
+Your subsequent steps can then publish the report HTML somewhere, save it as an artifact or generate report graphs etc.
+
 
 ### Example Comment
 
@@ -83,3 +91,12 @@ If you want to generate a badge to put in the readme, you could add an extra ste
         color: ${{ steps.coverage.outputs.meets-threshold == 'true' && 'green' || 'red' }}
 ```
 
+If you want to generate a cool [tree map](https://github.com/nikolaydubina/go-cover-treemap) showing coverage by package:
+
+```yaml
+    name: Generate coverage tree map
+    run: |
+    	go run github.com/nikolaydubina/go-cover-treemap@latest \
+          -coverprofile ${{ steps.coverage.outputs.gocov-agg-pathname }} \
+          -only-folders=true >/tmp/treemap.svg
+```
