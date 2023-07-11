@@ -33912,15 +33912,17 @@ async function setup() {
 }
 
 async function fetchCoverage() {
+  const notesRef = core.getInput('notes-ref');
   try {
+    const refName = `refs/notes/${notesRef}`;
     await exec('git', [
       'fetch',
       'origin',
-      '+refs/notes/gocoverage:refs/notes/gocoverage',
+      `+${refName}:${refName}`,
     ]);
   } catch (e) {
     // expected to fail if the ref hasn't been created yet
-    core.info('no existing gocoverage ref');
+    core.info(`no existing ${notesRef} ref`);
   }
 }
 
@@ -33929,13 +33931,14 @@ async function setCoverageNote(data) {
   core.startGroup('new coverage raw data');
   core.info(`new coverage data:  ${jsdata}`);
   core.endGroup();
+  const notesRef = core.getInput('notes-ref');
   await fetchCoverage();
   await exec(
     'git',
-    ['notes', '--ref=gocoverage', 'add', '-f', '--file=-', ctx.sha],
+    ['notes', `--ref=${notesRef}`, 'add', '-f', '--file=-', ctx.sha],
     jsdata
   );
-  await exec('git', ['push', 'origin', 'refs/notes/gocoverage']);
+  await exec('git', ['push', 'origin', `refs/notes/${notesRef}`]);
 }
 
 async function getPriorCoverage() {
@@ -33946,9 +33949,10 @@ async function getPriorCoverage() {
     return stats;
   }
   try {
+    const notesRef = core.getInput('notes-ref');
     const { output } = await exec('git', [
       'log',
-      '--notes=gocoverage',
+      `--notes=${notesRef}`,
       '--pretty=format:%H%n%N',
       '--grep=coverage_pct',
       '-n',
@@ -34148,9 +34152,13 @@ async function calcCoverage(goCovFilename, aggFilename) {
   return [globalPct, skippedFiles.size, pkgStats];
 }
 
-const commentMarker = '<!-- gocovaction -->';
+function getCommentMarker() {
+  const notesRef = core.getInput('notes-ref');
+  return `<!-- ${notesRef} -->`;
+}
 
 async function generatePRComment(stats) {
+  const commentMarker = getCommentMarker();
   let commitComment = `${commentMarker}Go test coverage: ${stats.current.coverage_pct.toFixed(
     1
   )}% for commit ${ctx.sha}`;
@@ -34255,6 +34263,8 @@ async function findPreviousComment(octokit, issue_number) {
     issue_number: issue_number,
     per_page: 100,
   });
+
+  const commentMarker = getCommentMarker();
 
   for await (const { data: comments } of it) {
     for (const comment of comments) {

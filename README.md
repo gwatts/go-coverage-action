@@ -76,6 +76,7 @@ jobs:
         aws s3 cp ${{ steps.coverage.outputs.report-pathname }} s3://artifacts.example.com-bucket/go-coverage/${{ github.ref_name}}.html
 ```
 
+You can also pass a `notes-ref` option to the action to set an explicit reference to use for the git notes, which can be useful for matrix builds to avoid concurrent builds from clobbering the notes of the other.
 
 If you want to generate a badge to put in the readme, you could add an extra step to the workflow to create one.  For example using the [dynamic badges action](https://github.com/Schneegans/dynamic-badges-action):
 

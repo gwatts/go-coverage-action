@@ -41,6 +41,10 @@ inputs:
     description: 'One or more regular expressions matching filenames to exclude from coverage statistics (e.g. for generated Go files)'
     required: false
     default: ''
+  notes-ref:
+    description: 'The refname to use for the git notes. Defaults to gocoverage'
+    required: false
+    default: gocoverage
 
 outputs:
   report-pathname:
