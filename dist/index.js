@@ -12297,7 +12297,7 @@ async function fetchCoverage() {
     await exec('git', [
       'fetch',
       'origin',
-      '+refs/notes/gocoverage:refs/notes/gocoverage',
+      '+refs/notes/gocoverage/*:refs/notes/gocoverage/*',
     ]);
   } catch (e) {
     // expected to fail if the ref hasn't been created yet
