@@ -70,7 +70,7 @@ async function setCoverageNote(data) {
     ['notes', '--ref=gocoverage', 'add', '-f', '--file=-', ctx.sha],
     jsdata
   );
-  await exec('git', ['push', 'origin', 'refs/notes/gocoverage']);
+  await exec('git', ['push', 'origin', 'refs/notes/gocoverage/*']);
 }
 
 async function getPriorCoverage() {
