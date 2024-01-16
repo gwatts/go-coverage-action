@@ -25,6 +25,10 @@ inputs:
     description: 'Build arguments to pass to go test'
     default: '[]'
     required: false
+  test-pkgs:
+    description: 'Parameter to pass to go tests packages'
+    default: './...'
+    required: false
   coverage-threshold:
     description: 'Fail the build if the coverage drops below supplied percentage'
     required: false
