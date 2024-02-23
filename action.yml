@@ -28,7 +28,7 @@ inputs:
   coverage-threshold:
     description: 'Fail the build if the coverage drops below supplied percentage'
     required: false
-    default: '0' 
+    default: 0
   fail-coverage:
     description: 'Fail the build if coverage drops below coverage-threshold.  One of "always", "never" or "only_pull_requests"'
     required: false
@@ -36,7 +36,7 @@ inputs:
   add-comment:
     description: 'Adds a comment to the PR with coverage information if true. If false will only add an action summary report'
     required: false
-    default: 'true'
+    default: true
   ignore-pattern:
     description: 'One or more regular expressions matching filenames to exclude from coverage statistics (e.g. for generated Go files)'
     required: false
