@@ -24,6 +24,10 @@ The workflow:
 
 Your subsequent steps can then publish the report HTML somewhere, save it as an artifact or generate report graphs etc.
 
+**Important**: Ensure your actions have permission to write to the repo, so that the coverage data added to a git note can be stored.  To do this, edit the settings for the repo where you wish to run the action, select "Actions" -> "General" on the left and ensure "Read and write permissions" are selected under "Workflow permissions".
+
+You'll receive an error similar to `Error: Command failed with exit code 128: git push origin refs/notes/gocoverage` if the above isn't in place.
+
 
 ### Example Comment
 
