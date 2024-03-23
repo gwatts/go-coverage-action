@@ -8,7 +8,7 @@ inputs:
     description: URL of final uploaded report.  e.g. https://reports.example.com/{{ $github.sha }}/cover.html
     required: false
   working-directory:
-    description: 'Working directory.  defaults to project root'
+    description: 'Working directory.  Defaults to project root'
     required: false
     default: ''
   report-filename:
@@ -22,11 +22,11 @@ inputs:
     description: 'Parameter to pass to go tests -coverpkg argument. Leave empty to omit flag'
     default: ''
   test-args:
-    description: 'Build arguments to pass to go test'
+    description: 'Additional build arguments to pass to go test'
     default: '[]'
     required: false
   test-pkgs:
-    description: 'Parameter to pass to go tests packages'
+    description: 'Package names to test, passed to go test - Multiple arguments should be separated by newlines'
     default: './...'
     required: false
   coverage-threshold:
