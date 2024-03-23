@@ -11,12 +11,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 10
-    - uses: actions/setup-go@v3
+    - uses: actions/setup-go@v5
       with:
-        go-version: 1.18
+        go-version: 1.22
     - uses: ./
       id: coverage
       with:
@@ -24,7 +24,7 @@ jobs:
         coverage-threshold: 0
         cover-pkg: ./...
     - if: steps.coverage.outputs.coverage-pct < 40
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         script: |
           core.setFailed('Incorrect coverage-pct: ${{ steps.coverage.outputs.coverage-pct }}')
