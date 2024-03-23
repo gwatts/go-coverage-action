@@ -28,7 +28,7 @@ inputs:
   coverage-threshold:
     description: 'Fail the build if the coverage drops below supplied percentage'
     required: false
-    default: 0 
+    default: 0
   fail-coverage:
     description: 'Fail the build if coverage drops below coverage-threshold.  One of "always", "never" or "only_pull_requests"'
     required: false
@@ -64,5 +64,5 @@ outputs:
   uncovered-packages:
     description: 'Number of Go packages with no test coverage'
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
