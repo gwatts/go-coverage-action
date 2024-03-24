@@ -54,7 +54,7 @@ jobs:
         # default fetch-depth is insufficent to find previous coverage notes
         fetch-depth: 10
 
-    - uses: gwatts/go-coverage-action@v1
+    - uses: gwatts/go-coverage-action@v2
       id: coverage
       with:
         # Optional coverage threshold
