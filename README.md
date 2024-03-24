@@ -49,7 +49,7 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         # default fetch-depth is insufficent to find previous coverage notes
         fetch-depth: 10
@@ -87,14 +87,14 @@ If you want to generate a badge to put in the readme, you could add an extra ste
 
 ```yaml
     - name: Update coverage badge
-      uses: schneegans/dynamic-badges-action@v1.3.0
+      uses: schneegans/dynamic-badges-action@v1.7.0
       if: github.ref_name == 'main'
       with:
         auth: ${{ secrets.COVERAGE_GIST_SECRET }}
         gistID: 788ds7a07299ab2728a33
         filename: coverage.json
         label: Go Coverage
-        message: ${{ steps.coverage.outputs.coverage-pct }}%
+        message: ${{ steps.coverage.outputs.coverage-pct-1dp }}%
         color: ${{ steps.coverage.outputs.meets-threshold == 'true' && 'green' || 'red' }}
 ```
 

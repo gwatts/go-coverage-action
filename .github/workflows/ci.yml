@@ -28,3 +28,13 @@ jobs:
       with:
         script: |
           core.setFailed('Incorrect coverage-pct: ${{ steps.coverage.outputs.coverage-pct }}')
+    - if: steps.coverage.outputs.coverage-pct-0dp != '67'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          core.setFailed('Incorrect coverage-pct-0dp: ${{ steps.coverage.outputs.coverage-pct-0dp }}')
+    - if: steps.coverage.outputs.coverage-pct-1dp != '66.7'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          core.setFailed('Incorrect coverage-pct-1dp: ${{ steps.coverage.outputs.coverage-pct-1dp }}')

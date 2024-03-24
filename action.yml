@@ -58,11 +58,19 @@ outputs:
   gocov-agg-pathname:
     description: 'The full pathname of the aggregated .cov coverage data'
   coverage-pct:
-    description: 'The coverage figure for the whole project.  e.g "83.4"'
+    description: 'The coverage figure for the whole project.  e.g "83.478"'
+  coverage-pct-0dp:
+    description: 'The coverage figure for the whole project rounded to the nearest integer.  e.g "83"'
+  coverage-pct-1dp:
+    description: 'The coverage figure for the whole project rounded to 1 decimal place.  e.g "83.5"'
   meets-threshold:
     description: 'Set to true if the current coverage is greater than coverage-threshold'
   coverage-last-pct:
     description: 'The prior coverage percentage'
+  coverage-last-pct-0dp:
+    description: 'The prior coverage percentage rounded to the nearest integer'
+  coverage-last-pct-1dp:
+    description: 'The prior coverage percentage rounded to 1 decimal place'
   coverage-last-sha:
     description: 'Commit sha prior coverage was recorded at'
   coverage-delta:

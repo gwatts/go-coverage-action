@@ -34305,11 +34305,15 @@ async function generateReport() {
 
   core.startGroup('Set output values');
   core.setOutput('coverage-pct', stats.current.coverage_pct);
+  core.setOutput('coverage-pct-0dp', stats.current.coverage_pct.toFixed(0));
+  core.setOutput('coverage-pct-1dp', stats.current.coverage_pct.toFixed(1));
   core.setOutput('package-count', stats.current.pkg_count);
   core.setOutput('uncovered-packages', stats.current.no_tests);
 
   core.setOutput('coverage-delta', stats.deltaPct);
   core.setOutput('coverage-last-pct', stats.prior.coverage_pct);
+  core.setOutput('coverage-last-pct-0dp', stats.prior.coverage_pct ? stats.prior.coverage_pct.toFixed(0) : '0');
+  core.setOutput('coverage-last-pct-1dp', stats.prior.coverage_pct ? stats.prior.coverage_pct.toFixed(1) : '0.0');
   core.setOutput('coverage-last-sha', stats.prior.sha);
   core.setOutput('meets-threshold', stats.meetsThreshold);
   core.setOutput('gocov-pathname', current.gocovPathname);

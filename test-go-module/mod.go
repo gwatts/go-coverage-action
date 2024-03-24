@@ -8,6 +8,8 @@ func ReturnColor(code string) string {
 		return "#00f"
 	case "green":
 		return "#0f0"
+	case "white":
+		return "#fff"
 	default:
 		panic("invalid color")
 	}
