@@ -462,7 +462,10 @@ async function generateReport() {
     pkg_stats: current.pkg_stats,
     skipped_count: current.skipped_count,
   };
-  await setCoverageNote(nowData);
+
+  if (!ctx.payload.pull_request) { // Don't set notes for PRs
+    await setCoverageNote(nowData);
+  }
 
   if (!stats.meetsThreshold) {
     const fail_policy = core.getInput('fail-coverage');
